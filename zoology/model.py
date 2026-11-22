@@ -142,8 +142,9 @@ def _init_weights(
                 nn.init.normal_(module.weight, std=initializer_range)
     else:
         if isinstance(module, nn.Linear):
-            nn.init.normal_(module.weight, std=initializer_range)
-            if module.bias is not None:
+            if not getattr(module.weight, "_no_reinit", False):
+                nn.init.normal_(module.weight, std=initializer_range)
+            if module.bias is not None and not getattr(module.bias, "_no_reinit", False):
                 nn.init.zeros_(module.bias)
         elif isinstance(module, nn.Embedding):
             if not getattr(module, "_no_reinit", False):
