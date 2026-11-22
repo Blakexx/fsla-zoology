@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import find_namespace_packages, setup
 
 
 _REQUIRED = [
@@ -10,7 +10,6 @@ _REQUIRED = [
     "wandb",
     "flash-linear-attention",
     "rotary-embedding-torch",
-    "causal_conv1d",
     "einx",
     "transformers",
 ]
@@ -38,7 +37,10 @@ setup(
     name="zoology", 
     version="0.0.1",
     description="",
-    packages=["zoology"],  
+    # every package under zoology/, its folders without an __init__.py among them, and the MRA mixer's CUDA sources
+    # (compiled at import): an install from source is the whole tree, as an editable one is
+    packages=find_namespace_packages(include=["zoology", "zoology.*"]),
+    package_data={"zoology.mixers.mra.cuda": ["*.cu", "*.h", "*.cpp"]},
     install_requires=_REQUIRED,
     extras_require=_OPTIONAL,
     entry_points={

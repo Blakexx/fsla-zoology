@@ -33,8 +33,15 @@ class Hybrid(nn.Module):
         Returns:
             y: (b, l, d) tensor
         """
-        return  self.mixer(u, *args, **kwargs)
+        out = self.mixer(u, *args, **kwargs)
+        # Canonical baselines from fla.layers (LinearAttention, GatedDeltaNet) follow the HF layer
+        # contract and return a tuple (hidden_states, attn, cache); zoology's block expects a bare
+        # tensor. Unwrap so HF-style sub-mixers compose with the rest of the block.
+        return out[0] if isinstance(out, tuple) else out
 
     def state_size(self, **kwargs):
-        return self.mixer.state_size(**kwargs)
+        # Canonical baselines (fla.layers.LinearAttention/GatedDeltaNet) intentionally expose no
+        # state_size — their realized state is read from the built projections by the companion
+        # verifier, not from this method. Guard so the harness's state-logging doesn't crash on them.
+        return self.mixer.state_size(**kwargs) if hasattr(self.mixer, "state_size") else 0
     
